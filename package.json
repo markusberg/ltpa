@@ -1,6 +1,6 @@
 {
     "name": "ltpa",
-    "version": "0.1.0",
+    "version": "0.1.1",
     "description": "Ltpa token generation and validation",
     "main": "index.js",
     "scripts": {
@@ -29,10 +29,10 @@
         "iconv-lite": "~0.4.10"
     },
     "devDependencies": {
-        "chai": "^1.10.0",
+        "chai": "^3.5.0",
         "mocha": "^2.1.0"
     },
     "engines": {
-        "npm": ">=4.2.4"
+        "node": ">=4.0.0"
     }
 }
