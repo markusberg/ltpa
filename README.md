@@ -56,5 +56,5 @@ codepage (basically Latin-1). The username in the token *should be* encoded
 in an IBM proprietary 
 format called `LMBCS` (Lotus Multi-Byte Character Set)
 for which I have found no javascript implementation. However, `LMBCS` is
-backwards compatible with `ìbm850` for all characters in that codepage so if
-your usernames don't contain characters outside of `ìbm850`, then you're good to go.
+backwards compatible with `ibm850` for all characters in that codepage so if
+your usernames don't contain characters outside of `ibm850`, then you're good to go.
