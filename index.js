@@ -85,6 +85,10 @@ function generate(userNameBuf, domain, timeStart) {
     let hash = crypto.createHash("sha1");
     hash.update(ltpaToken);
 
+    // Paranoid overwrite of the server secret 
+    ltpaToken.write("0123456789abcdefghij", size - 20, "utf-8");
+
+    // Append the token hash
     ltpaToken.write(hash.digest("hex"), size - 20, "hex");
     return ltpaToken.toString("base64");
 };
