@@ -104,7 +104,7 @@ function validate(token, domain) {
 
     if (ltpaToken.length < 41) {
         // userName must be at least one character long
-        throw new Error("Token too short");
+        throw new Error("Ltpa Token too short");
     }
 
     let signature = ltpaToken.toString("hex", ltpaToken.length - 20);
@@ -116,8 +116,6 @@ function validate(token, domain) {
 
     let hexDigest = hash.digest("hex");
     if (hexDigest !== signature) {
-        console.log(hexDigest);
-        console.log(signature);
         throw new Error("Ltpa Token signature doesn't validate");
     }
     let version = ltpaToken.toString("hex", 0, 4);
@@ -135,7 +133,7 @@ function validate(token, domain) {
     }
 
     if ((timeCreation + validity) < (now - gracePeriod)) {
-        throw new Error("Token has expired");
+        throw new Error("Ltpa Token has expired");
     }
 };
 
