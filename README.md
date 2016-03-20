@@ -62,7 +62,8 @@ you can generate an LtpaToken for that account using the `generate` method:
     });
 
     router.get("/myDominoView", function(req, res) {
-        let backendToken = ltpa.generate("Sysadmin Account", "example.com");
+        let userNameBuf = ltpa.generateUserNameBuf("Sysadmin Account");
+        let backendToken = ltpa.generate(userNameBuf, "example.com");
 
         let dominoRequest = {
             uri: "https://domino.example.com/api/data/collections/name/myDominoView",
