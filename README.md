@@ -49,7 +49,43 @@ Add the dependency and create a simple middleware:
     router.get("/testAuth", mwLtpaAuth, function (req, res) {
         res.send("user is logged in as " + ltpa.getUserName(req.cookies.LtpaToken));
     });
+
+## Example 2
+If you need to access a backend Domino database using a specific user account,
+you can generate an LtpaToken for that account using the `generate` method:
+
+    let ltpa = require("ltpa");
+    let rp = require("request-promise");
     
+    ltpa.setSecrets({
+        "example.com": "AAECAwQFBgcICQoLDA0ODxAREhM="
+    });
+
+    router.get("/myDominoView", function(req, res) {
+        let backendToken = ltpa.generate("Sysadmin Account", "example.com");
+
+        let dominoRequest = {
+            uri: "https://domino.example.com/api/data/collections/name/myDominoView",
+            method: "GET",
+            strictSSL: true,
+            timeout: 30000,
+            headers: {
+                Cookie: "LtpaToken=" + backendToken
+            }
+        };
+        
+        rp(dominoRequest)
+            .then(response => res.json(response))
+            .catch(err => {
+                console.log(err);
+                res.status(500).send(err);
+            });
+    });            
+
+## Tests
+
+    npm test
+
 ## Known issues
 The module only works with usernames containing characters in the `ibm850` 
 codepage (basically Latin-1). The username in the token *should be* encoded 
