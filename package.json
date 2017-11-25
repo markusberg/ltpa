@@ -1,38 +1,38 @@
 {
-    "name": "ltpa",
-    "version": "0.1.6",
-    "description": "Ltpa token generation and validation",
-    "main": "index.js",
-    "scripts": {
-        "test": "mocha --reporter spec"
-    },
-    "repository": {
-        "type": "git",
-        "url": "git+https://github.com/markusberg/ltpa.git"
-    },
-    "keywords": [
-        "ltpa",
-        "token",
-        "authentication",
-        "validation",
-        "lotus",
-        "ibm",
-        "websphere"
-    ],
-    "author": "Markus Berg <markus.berg@sectra.com>",
-    "license": "Apache-2.0",
-    "bugs": {
-        "url": "https://github.com/markusberg/ltpa/issues"
-    },
-    "homepage": "https://github.com/markusberg/ltpa#readme",
-    "dependencies": {
-        "iconv-lite": "~0.4.10"
-    },
-    "devDependencies": {
-        "chai": "^3.5.0",
-        "mocha": "^2.1.0"
-    },
-    "engines": {
-        "node": ">=4.0.0"
-    }
+  "name": "ltpa",
+  "version": "0.1.7",
+  "description": "Ltpa token generation and validation",
+  "main": "index.js",
+  "scripts": {
+    "test": "mocha --reporter spec"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/markusberg/ltpa.git"
+  },
+  "keywords": [
+    "ltpa",
+    "token",
+    "authentication",
+    "validation",
+    "lotus",
+    "ibm",
+    "websphere"
+  ],
+  "author": "Markus Berg <markus.berg@sectra.com>",
+  "license": "Apache-2.0",
+  "bugs": {
+    "url": "https://github.com/markusberg/ltpa/issues"
+  },
+  "homepage": "https://github.com/markusberg/ltpa#readme",
+  "dependencies": {
+    "iconv-lite": "~0.4.10"
+  },
+  "devDependencies": {
+    "chai": "^3.5.0",
+    "mocha": "^2.1.0"
+  },
+  "engines": {
+    "node": ">=4.0.0"
+  }
 }
