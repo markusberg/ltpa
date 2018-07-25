@@ -134,6 +134,7 @@ function validate(token: string, domain: string): void {
     throw new Error("Ltpa Token not yet valid");
   }
 
+  // need to check two gracePeriods into the future because we add one to the beginning
   if ((timeCreation + validity + gracePeriod*2) < now) {
     throw new Error("Ltpa Token has expired");
   }

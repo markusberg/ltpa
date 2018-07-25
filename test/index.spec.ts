@@ -27,7 +27,12 @@ describe('Ltpa', function() {
     ltpa.setValidity(5400);
   })
 
-  describe("successful tests", () => {
+  describe("positive tests", () => {
+    it("should generate a known token", () => {
+      const knownToken = ltpa.generate(userNameBuf, "example.com", 1234567890);
+      expect(knownToken).to.equal("AAECAzQ5OTYwMWE2NDk5NjE5MTZNeSBUZXN0IFVzZXJjcHMKyXIrtD4SZcV7DKWd67EFng==");
+    });
+
     it("should generate a token", () => {
       expect(token).to.be.a("string");
     });
@@ -69,7 +74,7 @@ describe('Ltpa', function() {
     });
   });
 
-  describe("failing tests", () => {
+  describe("negative tests", () => {
     it("should fail to validate an invalid token", () => {
       expect(() => ltpa.validate(invalidToken, "example.com")).to.throw(Error, "Ltpa Token signature doesn't validate");
     });
@@ -78,12 +83,12 @@ describe('Ltpa', function() {
       expect(() => ltpa.refresh(invalidToken, "example.com")).to.throw(Error, "Ltpa Token signature doesn't validate");
     });
 
-    it("should generate, but fail to verify an expired token", () => {
+    it("should generate, but fail to validate an expired token", () => {
       const token = ltpa.generate(userNameBuf, "example.com", 12);
       expect(() => ltpa.validate(token, "example.com")).to.throw(Error, "Ltpa Token has expired");
     });
 
-    it("should generate, and fail to verify a not yet valid token", () => {
+    it("should generate, and fail to validate a not yet valid token", () => {
       // Generate a token that starts being valid more than two gracePeriods into the future
       const futureTime = now + 605;
       const futureToken = ltpa.generate(userNameBuf, "example.com", futureTime);
