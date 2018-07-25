@@ -1,0 +1,118 @@
+import { expect } from "chai";
+import * as ltpa from "../index";
+
+
+ltpa.setSecrets({
+  "example.com": "AAECAwQFBgcICQoLDA0ODxAREhM=",
+  "invalid.example.com": "AAABAQICAwMEBAUFBgYHBwgICQk="
+});
+
+let userName;
+let userNameBuf;
+let token;
+let invalidToken;
+let now;
+
+describe('Ltpa', function() {
+  beforeEach(() => {
+    userName = "My Test User";
+    userNameBuf = ltpa.generateUserNameBuf(userName);
+    token = ltpa.generate(userNameBuf, "example.com");
+    invalidToken = ltpa.generate(userNameBuf, "invalid.example.com");
+    now = Math.floor(Date.now()/1000);
+  });
+
+  afterEach(() => {
+    ltpa.setGracePeriod(300);
+    ltpa.setValidity(5400);
+  })
+
+  describe("successful tests", () => {
+    it("should generate a token", () => {
+      expect(token).to.be.a("string");
+    });
+
+    it("should generate a valid token", () => {
+      const result = ltpa.validate(token, "example.com");
+      expect(result).to.be.a("undefined");
+    });
+
+    it("should refresh a valid token", () => {
+      const result = ltpa.refresh(token, "example.com");
+      expect(result).to.be.a("string");
+    });
+
+    it("should get the userName from the token", () => {
+      const result = ltpa.getUserName(token);
+      expect(result).to.equal(userName);
+    });
+
+    it("should validate a token that has expired, but is within the grace period", () => {
+      const justExpired = now - 5401;
+      const justExpiredToken = ltpa.generate(userNameBuf, "example.com", justExpired);
+      const result = ltpa.validate(justExpiredToken, "example.com");
+      expect(result).to.be.a("undefined");
+    });
+
+    it("should be possible to change the grace period", () => {
+      ltpa.setGracePeriod(0);
+      const result = ltpa.validate(token, "example.com");
+      expect(result).to.be.a("undefined");
+    });
+
+    it("should be possible to change the token validity", () => {
+      ltpa.setValidity(10);
+      ltpa.setGracePeriod(0);
+      const inThePast = now - 15;
+      const expiredToken = ltpa.generate(userNameBuf, "example.com", inThePast);
+      expect(() => ltpa.validate(expiredToken, "example.com")).to.throw(Error, "Ltpa Token has expired");
+    });
+  });
+
+  describe("failing tests", () => {
+    it("should fail to validate an invalid token", () => {
+      expect(() => ltpa.validate(invalidToken, "example.com")).to.throw(Error, "Ltpa Token signature doesn't validate");
+    });
+
+    it("should fail to refresh an invalid token", () => {
+      expect(() => ltpa.refresh(invalidToken, "example.com")).to.throw(Error, "Ltpa Token signature doesn't validate");
+    });
+
+    it("should generate, but fail to verify an expired token", () => {
+      const token = ltpa.generate(userNameBuf, "example.com", 12);
+      expect(() => ltpa.validate(token, "example.com")).to.throw(Error, "Ltpa Token has expired");
+    });
+
+    it("should generate, and fail to verify a not yet valid token", () => {
+      // Generate a token that starts being valid more than two gracePeriods into the future
+      const futureTime = now + 605;
+      const futureToken = ltpa.generate(userNameBuf, "example.com", futureTime);
+      expect(() => ltpa.validate(futureToken, "example.com")).to.throw(Error, "Ltpa Token not yet valid");
+    });
+
+    it("should fail to validate a non-existent token", () => {
+      expect(() => ltpa.validate("", "example.com")).to.throw(Error, "No token provided");
+    });
+
+    it("should fail to validate a non-existent domain", () => {
+      expect(() => ltpa.validate(token, "")).to.throw(Error, "No domain provided");
+    });
+
+    it("should fail to validate a token with an invalid magic string", () => {
+      const myBuffer = new Buffer(token, "base64");
+      myBuffer.write("99", 0, 1, "hex");
+      const corruptToken = myBuffer.toString("base64");
+      expect(() => ltpa.validate(corruptToken, "example.com")).to.throw(Error, "Incorrect magic string");
+    });
+
+    it("should fail to validate a token that's impossibly short", () => {
+      const myBuffer = new Buffer(token, "base64");
+      const corruptToken = myBuffer.slice(0, 33).toString("base64");
+      expect(() => ltpa.validate(corruptToken, "example.com")).to.throw(Error, "Ltpa Token too short");
+    });
+
+    it("should fail to validate a token with an incorrect secret key", () => {
+      expect(() => ltpa.validate(token, "blabla.example.com")).to.throw(Error, "No such server secret exists");
+    });
+  });
+});
