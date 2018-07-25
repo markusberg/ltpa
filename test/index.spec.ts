@@ -1,17 +1,16 @@
 import { expect } from "chai";
 import * as ltpa from "../index";
 
-
 ltpa.setSecrets({
   "example.com": "AAECAwQFBgcICQoLDA0ODxAREhM=",
   "invalid.example.com": "AAABAQICAwMEBAUFBgYHBwgICQk="
 });
 
-let userName;
-let userNameBuf;
-let token;
-let invalidToken;
-let now;
+let userName: string;
+let userNameBuf: Buffer;
+let token: string;
+let invalidToken: string;
+let now: number;
 
 describe('Ltpa', function() {
   beforeEach(() => {
@@ -38,13 +37,14 @@ describe('Ltpa', function() {
     });
 
     it("should generate a valid token", () => {
-      const result = ltpa.validate(token, "example.com");
-      expect(result).to.be.a("undefined");
+      expect(() => ltpa.validate(token, "example.com")).to.not.throw();
     });
 
     it("should refresh a valid token", () => {
       const result = ltpa.refresh(token, "example.com");
+      const size = Buffer.byteLength(result, "base64");
       expect(result).to.be.a("string");
+      expect(size).to.equal(40 + userName.length);
     });
 
     it("should get the userName from the token", () => {
@@ -55,14 +55,12 @@ describe('Ltpa', function() {
     it("should validate a token that has expired, but is within the grace period", () => {
       const justExpired = now - 5401;
       const justExpiredToken = ltpa.generate(userNameBuf, "example.com", justExpired);
-      const result = ltpa.validate(justExpiredToken, "example.com");
-      expect(result).to.be.a("undefined");
+      expect(() => ltpa.validate(justExpiredToken, "example.com")).to.not.throw();
     });
 
     it("should be possible to change the grace period", () => {
       ltpa.setGracePeriod(0);
-      const result = ltpa.validate(token, "example.com");
-      expect(result).to.be.a("undefined");
+      expect(() => ltpa.validate(token, "example.com")).to.not.throw();
     });
 
     it("should be possible to change the token validity", () => {
@@ -104,14 +102,18 @@ describe('Ltpa', function() {
     });
 
     it("should fail to validate a token with an invalid magic string", () => {
-      const myBuffer = new Buffer(token, "base64");
+      const size = Buffer.byteLength(token, "base64");
+      const myBuffer = Buffer.alloc(size);
+      myBuffer.write(token, 0, size, "base64");
       myBuffer.write("99", 0, 1, "hex");
       const corruptToken = myBuffer.toString("base64");
       expect(() => ltpa.validate(corruptToken, "example.com")).to.throw(Error, "Incorrect magic string");
     });
 
     it("should fail to validate a token that's impossibly short", () => {
-      const myBuffer = new Buffer(token, "base64");
+      const size = Buffer.byteLength(token, "base64");
+      const myBuffer = Buffer.alloc(size);
+      myBuffer.write(token, 0, size, "base64");
       const corruptToken = myBuffer.slice(0, 33).toString("base64");
       expect(() => ltpa.validate(corruptToken, "example.com")).to.throw(Error, "Ltpa Token too short");
     });
