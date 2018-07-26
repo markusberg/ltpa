@@ -14,6 +14,9 @@ let now: number;
 
 describe('Ltpa', function() {
   beforeEach(() => {
+    ltpa.setGracePeriod(300);
+    ltpa.setValidity(5400);
+
     userName = "My Test User";
     userNameBuf = ltpa.generateUserNameBuf(userName);
     token = ltpa.generate(userNameBuf, "example.com");
@@ -21,15 +24,18 @@ describe('Ltpa', function() {
     now = Math.floor(Date.now()/1000);
   });
 
-  afterEach(() => {
-    ltpa.setGracePeriod(300);
-    ltpa.setValidity(5400);
-  })
-
   describe("positive tests", () => {
-    it("should generate a known token", () => {
+    it("should generate known tokens", () => {
       const knownToken = ltpa.generate(userNameBuf, "example.com", 1234567890);
       expect(knownToken).to.equal("AAECAzQ5OTYwMWE2NDk5NjE5MTZNeSBUZXN0IFVzZXJjcHMKyXIrtD4SZcV7DKWd67EFng==");
+
+      ltpa.setGracePeriod(0);
+      const knownToken2 = ltpa.generate(userNameBuf, "example.com", 1234567890);
+      expect(knownToken2).to.equal("AAECAzQ5OTYwMmQyNDk5NjE3ZWFNeSBUZXN0IFVzZXJ1HUi4fVHSeb8JgA2xsVK0kjromg==");
+
+      ltpa.setValidity(10);
+      const knownToken3 = ltpa.generate(userNameBuf, "example.com", 1234567890);
+      expect(knownToken3).to.equal("AAECAzQ5OTYwMmQyNDk5NjAyZGNNeSBUZXN0IFVzZXJs8zRFVehH/c9RpQ/KvUPhBM5tdQ==");
     });
 
     it("should generate a token", () => {
@@ -86,7 +92,7 @@ describe('Ltpa', function() {
       expect(() => ltpa.validate(token, "example.com")).to.throw(Error, "Ltpa Token has expired");
     });
 
-    it("should generate, and fail to validate a not yet valid token", () => {
+    it("should generate, but fail to validate a not yet valid token", () => {
       // Generate a token that starts being valid more than two gracePeriods into the future
       const futureTime = now + 605;
       const futureToken = ltpa.generate(userNameBuf, "example.com", futureTime);
