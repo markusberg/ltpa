@@ -9,7 +9,8 @@
     "clean": "rimraf dist",
     "prepublishOnly": "npm run build",
     "test": "npm run clean && jest --coverage --verbose",
-    "test:watch": "npm run test -- --watchAll"
+    "test:watch": "npm run test -- --watchAll",
+    "report-coverage": "cat .coverage/lcov.info | codecov"
   },
   "repository": {
     "type": "git",
