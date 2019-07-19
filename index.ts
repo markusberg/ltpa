@@ -144,7 +144,6 @@ function validate(token: string, domain: string): void {
    */
   const version = ltpaToken.toString("hex", 0, 4)
   if (version !== "00010203") {
-    console.log(version)
     throw new Error("Incorrect magic string")
   }
 
