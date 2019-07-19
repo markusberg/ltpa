@@ -1,6 +1,6 @@
 {
   "name": "ltpa",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Ltpa token generation and validation",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
