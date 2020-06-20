@@ -12,10 +12,11 @@ let token: string
 let invalidToken: string
 let now: number
 
-describe("Ltpa", function() {
+describe("Ltpa", function () {
   beforeEach(() => {
     ltpa.setGracePeriod(300)
     ltpa.setValidity(5400)
+    ltpa.setStrictExpirationValidation(false)
 
     userName = "My Test User"
     userNameBuf = ltpa.generateUserNameBuf(userName)
@@ -167,6 +168,36 @@ describe("Ltpa", function() {
       expect(() => ltpa.validate(token, "blabla.example.com")).to.throw(
         Error,
         "No such server secret exists",
+      )
+    })
+  })
+
+  describe("strict expiration validation", () => {
+    it("should validate a token using the token expiration date", () => {
+      // this token is invalid with non-strict validation
+      ltpa.setStrictExpirationValidation(true)
+      ltpa.setValidity(10800)
+      const twoHoursAgo = now - 2 * 60 * 60
+      const myToken = ltpa.generate(userNameBuf, "example.com", twoHoursAgo)
+      ltpa.setValidity(5400)
+      expect(() => ltpa.validate(myToken, "example.com")).to.not.throw()
+    })
+
+    it("should fail to validate an expired token using the token expiration date", () => {
+      // this token is valid with non-strict validation
+      ltpa.setStrictExpirationValidation(true)
+      ltpa.setValidity(3600)
+      const ninetyMinutesAgo = now - 90 * 60
+      const expiredToken = ltpa.generate(
+        userNameBuf,
+        "example.com",
+        ninetyMinutesAgo,
+      )
+      ltpa.setValidity(5400)
+
+      expect(() => ltpa.validate(expiredToken, "example.com")).to.throw(
+        Error,
+        "Ltpa Token has expired",
       )
     })
   })

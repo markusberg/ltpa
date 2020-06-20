@@ -10,6 +10,7 @@ export {
   setGracePeriod,
   setSecrets,
   setValidity,
+  setStrictExpirationValidation,
   validate,
 }
 
@@ -23,6 +24,7 @@ interface Secrets {
 let ltpaSecrets: Secrets
 let validity = 5400
 let gracePeriod = 300
+let strictExpirationValidation = false
 
 /***
  * Set how long a generated token is valid. Default is 5400 seconds (90 minutes)
@@ -40,6 +42,16 @@ function setValidity(seconds: number): void {
  */
 function setGracePeriod(seconds: number): void {
   gracePeriod = seconds
+}
+
+/***
+ * If set to true, token expiration validation will check the actual validation
+ * timestamp in the token instead of the calculated expiration. See the
+ * "Known Issues" section below.
+ * @param {boolean} strict The strictness setting
+ */
+function setStrictExpirationValidation(strict: boolean): void {
+  strictExpirationValidation = strict
 }
 
 /***
@@ -99,7 +111,13 @@ function validate(token: string, domain: string): void {
   const ltpaToken = new Token()
   ltpaToken.parse(token)
   ltpaToken.validateTimeCreation(gracePeriod)
-  ltpaToken.validateTimeExpiration(validity, gracePeriod)
+
+  if (strictExpirationValidation) {
+    ltpaToken.validateTimeExpirationStrict()
+  } else {
+    ltpaToken.validateTimeExpiration(validity, gracePeriod)
+  }
+
   ltpaToken.validateVersion()
   ltpaToken.validateHash(serverSecret)
 }

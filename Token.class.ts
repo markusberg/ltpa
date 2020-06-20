@@ -109,13 +109,23 @@ export class Token {
   }
 
   /***
-   * Validate that the token is still valid
+   * Validate that the token is still valid according to this server's validity settings.
    * @param {number} validity Number of seconds that the token should be valid
    * @param {number} gracePeriod Number of seconds of leeway where an invalid token is still valid
    */
   validateTimeExpiration(validity: number, gracePeriod: number) {
     const now = Math.floor(Date.now() / 1000)
     if (this.timeCreation + validity + gracePeriod * 2 < now) {
+      throw new Error("Ltpa Token has expired")
+    }
+  }
+
+  /***
+   * Validate that the token is still valid according to the token's expiration date
+   */
+  validateTimeExpirationStrict() {
+    const now = Math.floor(Date.now() / 1000)
+    if (this.timeExpiration < now) {
       throw new Error("Ltpa Token has expired")
     }
   }
