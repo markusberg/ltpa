@@ -61,7 +61,7 @@ ltpa.setSecrets({
 
 /***
  * Express Middleware
- * Authenticate user by verifying the provided LtpaToken cookie
+ * Authorize user by verifying the provided LtpaToken cookie
  */
 function mwLtpaAuth(req, res, next) {
   try {
