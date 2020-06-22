@@ -1,5 +1,5 @@
+import { createHash } from "crypto"
 import { decode, encode } from "iconv-lite"
-import { Token } from "./Token.class"
 
 export {
   generate,
@@ -80,14 +80,30 @@ function generateUserNameBuf(userName: string): Buffer {
  * @returns {string} The LtpaToken encoded as Base64
  */
 function generate(userNameBuf: Buffer, domain: string, timeStart?: number) {
-  let token = new Token()
   const start = timeStart ? timeStart : Math.floor(Date.now() / 1000)
 
-  token.timeCreation = start - gracePeriod
-  token.timeExpiration = start + validity + gracePeriod
-  token.username = userNameBuf
-  token.sign(ltpaSecrets[domain])
-  return token.getBuffer().toString("base64")
+  const timeCreation = (start - gracePeriod).toString(16)
+  const timeExpiration = (start + validity + gracePeriod).toString(16)
+
+  const size = userNameBuf.length + 40
+  const ltpaToken = Buffer.alloc(size)
+
+  ltpaToken.write("00010203", 0, 4, "hex")
+  ltpaToken.write(timeCreation, 4)
+  ltpaToken.write(timeExpiration, 12)
+  userNameBuf.copy(ltpaToken, 20)
+  const serverSecret = ltpaSecrets[domain]
+  ltpaToken.write(serverSecret, size - 20, 20, "base64")
+
+  const hash = createHash("sha1")
+  hash.update(ltpaToken)
+
+  // Paranoid overwrite of the server secret
+  ltpaToken.write("0123456789abcdefghij", size - 20, 20, "utf8")
+
+  // Append the token hash
+  ltpaToken.write(hash.digest("hex"), size - 20, 20, "hex")
+  return ltpaToken.toString("base64")
 }
 
 /***
@@ -99,6 +115,9 @@ function validate(token: string, domain: string): void {
   /**
    * Basic sanity checking of in-data
    */
+  if (!token || token.length === 0) {
+    throw new Error("No token provided")
+  }
   if (!domain || domain.length === 0) {
     throw new Error("No domain provided")
   }
@@ -108,18 +127,50 @@ function validate(token: string, domain: string): void {
     throw new Error("No such server secret exists")
   }
 
-  const ltpaToken = new Token()
-  ltpaToken.parse(token)
-  ltpaToken.validateTimeCreation(gracePeriod)
-
-  if (strictExpirationValidation) {
-    ltpaToken.validateTimeExpirationStrict()
-  } else {
-    ltpaToken.validateTimeExpiration(validity, gracePeriod)
+  const tokenSize = Buffer.byteLength(token, "base64")
+  const ltpaToken = Buffer.alloc(tokenSize, token, "base64")
+  if (ltpaToken.length < 41) {
+    // userName must be at least one character long
+    throw new Error("Ltpa Token too short")
   }
 
-  ltpaToken.validateVersion()
-  ltpaToken.validateHash(serverSecret)
+  /**
+   * Check time validity
+   */
+  const timeCreation = parseInt(ltpaToken.toString("utf8", 4, 12), 16)
+  // we don't look at the expiration stored in the token, but calculate our own
+  const timeExpiration = parseInt(ltpaToken.toString("utf8", 12, 20), 16)
+  const now = Math.floor(Date.now() / 1000)
+
+  if (timeCreation - gracePeriod > now) {
+    throw new Error("Ltpa Token not yet valid")
+  }
+
+  const exp = strictExpirationValidation
+    ? timeExpiration
+    : timeCreation + validity + gracePeriod * 2
+  // need to check two gracePeriods into the future because we add one to the beginning
+  if (exp < now) {
+    throw new Error("Ltpa Token has expired")
+  }
+
+  /**
+   * Check version, and hash itself
+   */
+  const version = ltpaToken.toString("hex", 0, 4)
+  if (version !== "00010203") {
+    throw new Error("Incorrect magic string")
+  }
+
+  const signature = ltpaToken.toString("hex", ltpaToken.length - 20)
+  ltpaToken.write(serverSecret, ltpaToken.length - 20, 20, "base64")
+
+  const hash = createHash("sha1")
+  hash.update(ltpaToken)
+
+  if (hash.digest("hex") !== signature) {
+    throw new Error("Ltpa Token signature doesn't validate")
+  }
 }
 
 /***
@@ -128,9 +179,9 @@ function validate(token: string, domain: string): void {
  * @returns {buffer} Buffer containing the encoded username
  */
 function getUserNameBuf(token: string): Buffer {
-  const ltpaToken = new Token()
-  ltpaToken.parse(token)
-  return ltpaToken.username
+  const size = Buffer.byteLength(token, "base64")
+  const ltpaToken = Buffer.alloc(size, token, "base64")
+  return ltpaToken.slice(20, ltpaToken.length - 20)
 }
 
 /***
