@@ -1,6 +1,6 @@
 {
   "name": "ltpa",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "description": "Ltpa token generation and validation",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -32,20 +32,20 @@
   },
   "homepage": "https://github.com/markusberg/ltpa#readme",
   "dependencies": {
-    "iconv-lite": "~0.5.0"
+    "iconv-lite": "~0.6.2"
   },
   "devDependencies": {
-    "@types/chai": "^4.2.11",
-    "@types/jest": "^26.0.0",
+    "@types/chai": "^4.2.12",
+    "@types/jest": "^26.0.14",
     "@types/node": "^10.14.13",
     "chai": "^4.2.0",
-    "codecov": "^3.7.0",
-    "husky": "^4.2.5",
-    "jest": "^26.0.1",
-    "prettier": "^2.0.5",
-    "pretty-quick": "^2.0.1",
+    "codecov": "^3.7.2",
+    "husky": "^4.3.0",
+    "jest": "^26.4.2",
+    "prettier": "^2.1.2",
+    "pretty-quick": "^3.0.2",
     "rimraf": "^3.0.2",
-    "ts-jest": "^26.1.0",
+    "ts-jest": "^26.4.0",
     "typescript": "^3.9.5"
   },
   "husky": {
