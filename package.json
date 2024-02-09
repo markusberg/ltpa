@@ -1,16 +1,20 @@
 {
   "name": "ltpa",
-  "version": "1.2.1",
+  "version": "2.0.0",
   "description": "Ltpa token generation and validation",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
+  "type": "module",
+  "exports": "./dist/index.js",
   "scripts": {
-    "build": "rimraf dist && tsc",
-    "clean": "rimraf dist",
+    "build": "rm -fr dist && tsc",
+    "clean": "rm -fr dist",
     "prepublishOnly": "npm run build",
-    "test": "npm run clean && jest --coverage --verbose",
-    "test:watch": "npm run test -- --watchAll",
-    "report-coverage": "cat .coverage/lcov.info | codecov"
+    "test": "vitest run --coverage",
+    "test:watch": "vitest watch",
+    "test:watch:coverage": "vitest watch --coverage",
+    "report-coverage": "cat .coverage/lcov.info | codecov",
+    "prep": "npm install && husky && chmod ug+x .husky/*"
   },
   "repository": {
     "type": "git",
@@ -32,26 +36,15 @@
   },
   "homepage": "https://github.com/markusberg/ltpa#readme",
   "dependencies": {
-    "iconv-lite": "~0.6.2"
+    "iconv-lite": "~0.6.3"
   },
   "devDependencies": {
-    "@types/chai": "^4.2.12",
-    "@types/jest": "^26.0.14",
-    "@types/node": "^10.14.13",
-    "chai": "^4.2.0",
+    "@types/node": "^18.19.15",
+    "@vitest/coverage-v8": "^1.2.2",
     "codecov": "^3.7.2",
-    "husky": "^4.3.0",
-    "jest": "^26.4.2",
-    "prettier": "^2.1.2",
-    "pretty-quick": "^3.0.2",
-    "rimraf": "^3.0.2",
-    "ts-jest": "^26.4.0",
-    "typescript": "^3.9.5"
-  },
-  "husky": {
-    "hooks": {
-      "pre-commit": "pretty-quick --staged",
-      "pre-push": "npm test"
-    }
+    "husky": "^9.0.10",
+    "prettier": "^3.2.5",
+    "typescript": "^5.3.3",
+    "vitest": "^1.2.2"
   }
 }

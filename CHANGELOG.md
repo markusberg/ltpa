@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.0.0] - 2024-02-09
+
+- Drop support for Node.js versions below 18
+- Ecmascript only
+- Migrate to vitest and node:test for testing
+
 ## [1.0.0] - 2019-07-19
 
 ### Added
