@@ -1,14 +1,15 @@
 {
   "name": "ltpa",
-  "version": "2.0.0",
+  "version": "2.0.0-alpha.0",
   "description": "Ltpa token generation and validation",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "type": "module",
   "exports": "./dist/index.js",
   "scripts": {
-    "build": "rm -fr dist && tsc",
+    "build": "npm run clean && tsc",
     "clean": "rm -fr dist",
+    "watch": "npm run clean && tsc -w",
     "prepublishOnly": "npm run build",
     "test": "vitest run --coverage",
     "test:watch": "vitest watch",
