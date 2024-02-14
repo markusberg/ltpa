@@ -255,4 +255,30 @@ describe('Ltpa', function () {
       )
     })
   })
+
+  describe('codepage handling', () => {
+    it('should be able to convert an ascii username and back again', () => {
+      const username = 'my test username'
+      const buf = ltpa.generateUserNameBuf(username)
+      const token = ltpa.generate(buf, 'example.com')
+      const backAgain = ltpa.getUserName(token)
+      assert.equal(username, backAgain)
+    })
+
+    it('should be able to convert an ibm852 username and back again', () => {
+      const username = 'Łuczak'
+      const buf = ltpa.generateUserNameBuf(username)
+      const token = ltpa.generate(buf, 'example.com')
+      const backAgain = ltpa.getUserName(token)
+      assert.equal(username, backAgain)
+    })
+
+    it('should be able to handle a username containing both ibm850 and ibm852 characters', () => {
+      const username = 'Måns Östen Łučzak'
+      const buf = ltpa.generateUserNameBuf(username)
+      const token = ltpa.generate(buf, 'example.com')
+      const backAgain = ltpa.getUserName(token)
+      assert.equal(username, backAgain)
+    })
+  })
 })

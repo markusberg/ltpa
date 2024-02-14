@@ -26,6 +26,15 @@ let validity = 5400
 let gracePeriod = 300
 let strictExpirationValidation = false
 
+/**
+ * Special handling of Codepage 852
+ */
+const ibm852Chars =
+  'ÇüéâäůćçłëŐőîŹÄĆÉĹĺôöĽľŚśÖÜŤťŁčáíóúĄąŽžĘę¬źČşÁÂĚŞŻżĂăđĐĎËďŇÍÎěŢŮÓßÔŃńňŠšŔÚŕŰýÝţűŘř'.split(
+    '',
+  )
+const buf852 = Buffer.from([0x06])
+
 /***
  * Set how long a generated token is valid. Default is 5400 seconds (90 minutes)
  * @param {number} seconds Number of seconds that tokens are valid
@@ -65,11 +74,20 @@ function setSecrets(secrets: Secrets) {
 /***
  * Generate a userName Buffer. Currently hardcoded to CP-850, but the
  * true char encoding is LMBCS
- * @param {string} userName The username to be converted to a CP-850 buffer
+ * @param {string} username The username to be converted to a CP-850 buffer
  * @returns {Buffer} Username encoded in CP-850 and stuffed into a Buffer
  */
-function generateUserNameBuf(userName: string): Buffer {
-  return iconv.encode(userName, 'ibm850')
+function generateUserNameBuf(username: string): Buffer {
+  const bufUsername = username.split('').reduce((acc, char) => {
+    if (ibm852Chars.includes(char)) {
+      const bufChar = iconv.encode(char, 'ibm852')
+      return Buffer.concat([acc, buf852, bufChar])
+    }
+    const bufChar = iconv.encode(char, 'ibm850')
+    return Buffer.concat([acc, bufChar])
+  }, Buffer.from(''))
+
+  return bufUsername
 }
 
 /***
@@ -79,7 +97,11 @@ function generateUserNameBuf(userName: string): Buffer {
  * @param {number} timeStart Timestamp (seconds) for when the token validity should start. Default: now
  * @returns {string} The LtpaToken encoded as Base64
  */
-function generate(userNameBuf: Buffer, domain: string, timeStart?: number) {
+function generate(
+  userNameBuf: Buffer,
+  domain: string,
+  timeStart?: number,
+): string {
   const start = timeStart ? timeStart : Math.floor(Date.now() / 1000)
 
   const timeCreation = (start - gracePeriod).toString(16)
@@ -181,7 +203,7 @@ function validate(token: string, domain: string): void {
 function getUserNameBuf(token: string): Buffer {
   const size = Buffer.byteLength(token, 'base64')
   const ltpaToken = Buffer.alloc(size, token, 'base64')
-  return ltpaToken.slice(20, ltpaToken.length - 20)
+  return ltpaToken.subarray(20, ltpaToken.length - 20)
 }
 
 /***
@@ -190,7 +212,21 @@ function getUserNameBuf(token: string): Buffer {
  * @returns {string} Username as a UTF-8 string
  */
 function getUserName(token: string): string {
-  return iconv.decode(getUserNameBuf(token), 'ibm850')
+  const bufUsername = getUserNameBuf(token)
+  let username: string[] = []
+  for (let i = 0; i < bufUsername.length; i++) {
+    const char = bufUsername.subarray(i, i + 1)
+    if (char.equals(buf852)) {
+      const utf8 = iconv.decode(bufUsername.subarray(i + 1, i + 2), 'ibm852')
+      username.push(utf8)
+      i++
+    } else {
+      const utf8 = iconv.decode(char, 'ibm850')
+      username.push(utf8)
+    }
+  }
+
+  return username.join('')
 }
 
 /***

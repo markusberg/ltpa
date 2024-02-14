@@ -54,33 +54,35 @@ These examples are for [Express](https://expressjs.com/), but the functionality 
 Add the dependency and create a simple middleware:
 
 ```javascript
-let ltpa = require("ltpa")
-ltpa.setSecrets({
-  "example.com": "AAECAwQFBgcICQoLDA0ODxAREhM=",
+import { getUserName, refresh, setSecrets } from 'ltpa'
+import { NextFunction, Request, Response } from 'express'
+
+setSecrets({
+  'example.com': 'AAECAwQFBgcICQoLDA0ODxAREhM=',
 })
 
-/***
+/**
  * Express Middleware
  * Authenticate user by verifying the provided LtpaToken cookie
  */
-function mwLtpaAuth(req, res, next) {
+export function mwLtpaAuth(req: Request, res: Response, next: NextFunction) {
   try {
-    let ltpaToken = ltpa.refresh(req.cookies.LtpaToken, "example.com")
-    let newCookie =
-      "LtpaToken=" + ltpaToken + "; Path=/; Domain=" + "example.com"
-    res.setHeader("Set-Cookie", newCookie)
+    const ltpaToken = refresh(req.cookies.LtpaToken, 'example.com')
+    const newCookie =
+      'LtpaToken=' + ltpaToken + '; Path=/; Domain=' + 'example.com'
+    res.setHeader('Set-Cookie', newCookie)
     next()
   } catch (err) {
     console.log(err)
-    res.status(401).json({ message: "Not authorized for this resource" })
+    res.status(401).json({ message: 'Not authorized for this resource' })
   }
 }
 
-/***
+/**
  * Express route
  */
-router.get("/testAuth", mwLtpaAuth, function (req, res) {
-  res.send("user is logged in as " + ltpa.getUserName(req.cookies.LtpaToken))
+router.get('/testAuth', mwLtpaAuth, (req: Request, res: Response) => {
+  res.send('user is logged in as ' + getUserName(req.cookies.LtpaToken))
 })
 ```
 
@@ -89,34 +91,32 @@ router.get("/testAuth", mwLtpaAuth, function (req, res) {
 If you need to access a backend Domino database using a specific user account,
 you can generate an LtpaToken for that account using the `generate` method:
 
-```javascript
-let ltpa = require("ltpa")
-let rp = require("request-promise")
+```typescript
+import { Request, Response } from 'express'
+import { generate, generateUserNameBuf, setSecrets } from 'ltpa'
 
-ltpa.setSecrets({
-  "example.com": "AAECAwQFBgcICQoLDA0ODxAREhM=",
+setSecrets({
+  'example.com': 'AAECAwQFBgcICQoLDA0ODxAREhM=',
 })
 
-router.get("/myDominoView", function (req, res) {
-  let userNameBuf = ltpa.generateUserNameBuf("Sysadmin Account")
-  let backendToken = ltpa.generate(userNameBuf, "example.com")
+router.get('/myDominoView', async (req: Request, res: Response) => {
+  const userNameBuf = generateUserNameBuf('CN=Sysadmin Account,O=Example Inc')
+  const backendToken = generate(userNameBuf, 'example.com')
 
-  let dominoRequest = {
-    uri: "https://domino.example.com/api/data/collections/name/myDominoView",
-    method: "GET",
-    strictSSL: true,
-    timeout: 30000,
-    headers: {
-      Cookie: "LtpaToken=" + backendToken,
-    },
+  const url = new URL(
+    '/api/data/collections/name/myDominoView',
+    'https://domino.example.com/',
+  )
+  const headers = { Cookie: `LtpaToken=${backendToken}` }
+
+  try {
+    const response = await fetch(url, { headers })
+    const json = await response.json()
+    res.json(json)
+  } catch (err) {
+    console.error(err)
+    res.status(500).send(err)
   }
-
-  rp(dominoRequest)
-    .then((response) => res.json(response))
-    .catch((err) => {
-      console.log(err)
-      res.status(500).send(err)
-    })
 })
 ```
 
@@ -138,9 +138,9 @@ $ npm run test:watch
 
 When validating token expiration, the library will only respect its internal `validity` setting, and will disregard the expiration-date setting in provided tokens. To force the library to use the actual timestamp in the token, use the setStrictExpirationValidation() method. This behaviour might change in version 2.
 
-### Character set
+### Character sets
 
-The module only works with usernames containing characters in the `ibm850` codepage (basically Latin-1). The username in the token _should be_ encoded in an IBM proprietary format called `LMBCS` (Lotus Multi-Byte Character Set) for which I have found no javascript implementation. However, `LMBCS` is backwards compatible with `ibm850` for all characters in that codepage so if your usernames don't contain characters outside of `ibm850`, then you're good to go.
+The module only works with usernames containing characters in the `ibm850`, and `ibm852` codepages (this covers most of Europe). The username in the token is encoded in an old IBM/Lotus format called [`LMBCS` (Lotus Multi-Byte Character Set)](https://en.wikipedia.org/wiki/Lotus_Multi-Byte_Character_Set) for which I have found no javascript implementation.
 
 ### LTPA1 only
 

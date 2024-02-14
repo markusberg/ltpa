@@ -4,6 +4,7 @@ All notable changes to this project will be documented in this file.
 
 ## [2.0.0] - 2024-02-09
 
+- Add support for codepage 852 enabling eastern european characters in usernames
 - Drop support for Node.js versions below 18
 - Ecmascript only
 - Migrate to vitest and node:test for testing
