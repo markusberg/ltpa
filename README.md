@@ -1,7 +1,7 @@
 # ltpa
 
-[![travis build](https://img.shields.io/travis/markusberg/ltpa.svg)](https://travis-ci.org/markusberg/ltpa)
-[![codecov coverage](https://img.shields.io/codecov/c/github/markusberg/ltpa/master.svg)](https://codecov.io/github/markusberg/ltpa)
+[![node.js build](https://github.com/markusberg/ltpa/actions/workflows/master.yaml/badge.svg)](https://github.com/markusberg/ltpa/actions/workflows/master.yaml)
+[![coverage](https://markusberg.github.io/ltpa/badges/coverage.svg)](https://github.com/markusberg/ltpa/actions)
 [![version](https://img.shields.io/npm/v/ltpa.svg)](https://codecov.io/github/markusberg/ltpa)
 [![license](https://img.shields.io/github/license/markusberg/ltpa.svg)](https://www.apache.org/licenses/LICENSE-2.0)
 
