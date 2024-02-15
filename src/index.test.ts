@@ -1,4 +1,4 @@
-import * as ltpa from '../index'
+import * as ltpa from './index.js'
 
 import { describe, it, beforeEach } from 'vitest'
 import { strict as assert } from 'node:assert'

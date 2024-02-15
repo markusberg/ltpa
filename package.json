@@ -1,6 +1,6 @@
 {
   "name": "ltpa",
-  "version": "2.0.0-alpha.0",
+  "version": "2.0.0-alpha.1",
   "description": "Ltpa token generation and validation",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -8,10 +8,10 @@
   "exports": "./dist/index.js",
   "scripts": {
     "build": "npm run clean && tsc",
-    "clean": "rm -fr dist",
+    "clean": "rimraf dist",
     "watch": "npm run clean && tsc -w",
     "prepublishOnly": "npm run build",
-    "test": "vitest run --coverage",
+    "test": "vitest run --coverage.enabled --coverage.reporter=json-summary",
     "test:watch": "vitest watch",
     "test:watch:coverage": "vitest watch --coverage",
     "report-coverage": "cat .coverage/lcov.info | codecov",
@@ -42,9 +42,10 @@
   "devDependencies": {
     "@types/node": "^18.19.15",
     "@vitest/coverage-v8": "^1.2.2",
-    "codecov": "^3.7.2",
     "husky": "^9.0.10",
+    "lint-staged": "^15.2.2",
     "prettier": "^3.2.5",
+    "rimraf": "^5.0.5",
     "typescript": "^5.3.3",
     "vitest": "^1.2.2"
   }
