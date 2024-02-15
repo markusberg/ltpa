@@ -1,7 +1,7 @@
 # ltpa
 
 [![node.js build](https://github.com/markusberg/ltpa/actions/workflows/master.yaml/badge.svg)](https://github.com/markusberg/ltpa/actions/workflows/master.yaml)
-[![coverage](https://markusberg.github.io/ltpa/badges/coverage.svg)](https://github.com/markusberg/ltpa/actions)
+[![coverage](https://markusberg.github.io/ltpa/badges/coverage-2.0.0-beta.2.svg)](https://github.com/markusberg/ltpa/actions)
 [![version](https://img.shields.io/npm/v/ltpa.svg)](https://codecov.io/github/markusberg/ltpa)
 [![license](https://img.shields.io/github/license/markusberg/ltpa.svg)](https://www.apache.org/licenses/LICENSE-2.0)
 
@@ -11,6 +11,8 @@ A small library for generating and validating ltpa tokens. Based on the
 ## Who is this for?
 
 For developers integrating [Node.js](https://nodejs.org/) applications with the world of IBM Domino and/or Websphere.
+
+Since version 2.0, this module is strictly ESmodule. If you require CommonJS, you can still use the 1.x versions.
 
 ## Retrieving the server secret
 
