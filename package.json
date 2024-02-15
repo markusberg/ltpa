@@ -1,9 +1,7 @@
 {
   "name": "ltpa",
-  "version": "2.0.0-alpha.1",
+  "version": "2.0.0-beta.2",
   "description": "Ltpa token generation and validation",
-  "main": "dist/index.js",
-  "types": "dist/index.d.ts",
   "type": "module",
   "exports": "./dist/index.js",
   "scripts": {
@@ -16,6 +14,9 @@
     "test:watch:coverage": "vitest watch --coverage",
     "report-coverage": "cat .coverage/lcov.info | codecov",
     "prep": "npm install && husky && chmod ug+x .husky/*"
+  },
+  "engines": {
+    "node": ">=18.0.0"
   },
   "repository": {
     "type": "git",

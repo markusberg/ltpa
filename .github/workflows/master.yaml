@@ -22,8 +22,17 @@ jobs:
         with:
           node-version: ${{ matrix.node-version }}
       - run: npm ci
-      - run: npm run build --if-present
-      - run: npm test
+      - run: npm run build
+      - run: npm run test
+
+      - name: Get npm version
+        id: get-values
+        shell: bash
+        run: |
+          VERSION=$(node -p 't=require(`./package.json`).version')
+          echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
 
       - name: Update Coverage Badge
-        uses: we-cli/coverage-badge-action@main
+        uses: markusberg/coverage-badge-action@main
+        with:
+          version: ${{ steps.get-values.outputs.VERSION }}
