@@ -1,30 +1,19 @@
+/**
+ * Generate and validate LTPA tokens for IBM WebSphere authentication
+ *
+ * @module ltpa
+ */
+
 import { createHash } from 'node:crypto'
 import iconv from 'iconv-lite'
 
-export {
-  generate,
-  generateUserNameBuf,
-  getUserNameBuf,
-  getUserName,
-  refresh,
-  setGracePeriod,
-  setSecrets,
-  setValidity,
-  setStrictExpirationValidation,
-  validate,
-}
+/** Mapping of domain names to their base64-encoded LTPA secrets */
+type Secrets = Record<string, string>
 
-interface Secrets {
-  [key: string]: string
-}
-
-/**
- * LtpaToken generator and verifier
- */
 let ltpaSecrets: Secrets
 let validity = 5400
 let gracePeriod = 300
-let strictExpirationValidation = false
+let strictExpirationValidation = true
 
 /**
  * Special handling of Codepage 852
@@ -35,49 +24,47 @@ const ibm852Chars =
   )
 const buf852 = Buffer.from([0x06])
 
-/***
- * Set how long a generated token is valid. Default is 5400 seconds (90 minutes)
- * @param {number} seconds Number of seconds that tokens are valid
+/**
+ * Set how long a generated token is valid
+ * @param seconds - Default is 5400 seconds (90 minutes)
  */
-function setValidity(seconds: number): void {
+export function setValidity(seconds: number): void {
   validity = seconds
 }
 
-/***
- * Set the amount of time outside a ticket's validity that we will still accept it.
- * This time is also added to the validity of tokens that we generate
- * Default is 300 seconds (5 minutes).
- * @param {number} seconds Number of seconds grace
+/**
+ * Set the grace period for token acceptance outside validity window
+ * Also adds this time to generated token validity
+ * @param seconds - Default is 300 seconds (5 minutes)
  */
-function setGracePeriod(seconds: number): void {
+export function setGracePeriod(seconds: number): void {
   gracePeriod = seconds
 }
 
-/***
- * If set to true, token expiration validation will check the actual validation
- * timestamp in the token instead of the calculated expiration. See the
- * "Known Issues" section below.
- * @param {boolean} strict The strictness setting
+/**
+ * Set strict token expiration validation mode
+ * When true (default), check actual validation timestamp instead of calculated expiration
+ * @param strict - Enable/disable strict validation
  */
-function setStrictExpirationValidation(strict: boolean): void {
+export function setStrictExpirationValidation(strict: boolean): void {
   strictExpirationValidation = strict
 }
 
-/***
- * Set the ltpa secrets
- * @param {object} secrets domain to secret (base64) mapping
+/**
+ * Set the LTPA secrets for token generation/validation
+ * @param secrets - Domain to secret (base64) mapping
  */
-function setSecrets(secrets: Secrets) {
+export function setSecrets(secrets: Secrets) {
   ltpaSecrets = secrets
 }
 
-/***
- * Generate a userName Buffer. Currently hardcoded to CP-850, but the
- * true char encoding is LMBCS
- * @param {string} username The username to be converted to a CP-850 buffer
- * @returns {Buffer} Username encoded in CP-850 and stuffed into a Buffer
+/**
+ * Generate a username buffer encoded in CP-850/852
+ * Note: True char encoding should be LMBCS
+ * @param username - Username to encode
+ * @returns Username encoded in CP-850/852 buffer
  */
-function generateUserNameBuf(username: string): Buffer {
+export function generateUserNameBuf(username: string): Buffer {
   const bufUsername = username.split('').reduce((acc, char) => {
     if (ibm852Chars.includes(char)) {
       const bufChar = iconv.encode(char, 'ibm852')
@@ -90,14 +77,14 @@ function generateUserNameBuf(username: string): Buffer {
   return bufUsername
 }
 
-/***
- * Generate an LtpaToken suitable for writing to a cookie
- * @param {buffer} userName The username for whom the cookie is signed
- * @param {string} domain The domain for which the cookie is generated
- * @param {number} timeStart Timestamp (seconds) for when the token validity should start. Default: now
- * @returns {string} The LtpaToken encoded as Base64
+/**
+ * Generate an LTPA token for cookie usage
+ * @param userNameBuf - Username buffer to include in token
+ * @param domain - Domain for cookie generation
+ * @param timeStart - Optional timestamp (seconds) for token validity start
+ * @returns Base64 encoded LTPA token
  */
-function generate(
+export function generate(
   userNameBuf: Buffer,
   domain: string,
   timeStart?: number,
@@ -128,12 +115,13 @@ function generate(
   return ltpaToken.toString('base64')
 }
 
-/***
- * Validate a token. Throws an error if validation fails.
- * @param {string} token The LtpaToken string in Base64 encoded format
- * @param {string} domain The id of the key for which to validate the provided token
+/**
+ * Validate an LTPA token
+ * @param token - Base64 encoded LTPA token
+ * @param domain - Domain key for token validation
+ * @throws Error if validation fails
  */
-function validate(token: string, domain: string): void {
+export function validate(token: string, domain: string): void {
   /**
    * Basic sanity checking of in-data
    */
@@ -161,7 +149,7 @@ function validate(token: string, domain: string): void {
    */
   const timeCreation = parseInt(ltpaToken.toString('utf8', 4, 12), 16)
   // we don't look at the expiration stored in the token, but calculate our own
-  const timeExpiration = parseInt(ltpaToken.toString('utf8', 12, 20), 16)
+  const strictExpiration = parseInt(ltpaToken.toString('utf8', 12, 20), 16)
   const now = Math.floor(Date.now() / 1000)
 
   if (timeCreation - gracePeriod > now) {
@@ -169,7 +157,7 @@ function validate(token: string, domain: string): void {
   }
 
   const exp = strictExpirationValidation
-    ? timeExpiration
+    ? strictExpiration
     : timeCreation + validity + gracePeriod * 2
   // need to check two gracePeriods into the future because we add one to the beginning
   if (exp < now) {
@@ -195,23 +183,23 @@ function validate(token: string, domain: string): void {
   }
 }
 
-/***
- * Retrieve the username from the token. No validation of the token is performed
- * @param {string} token The LtpaToken string in Base64 encoded format
- * @returns {buffer} Buffer containing the encoded username
+/**
+ * Extract username buffer from token without validation
+ * @param token - Base64 encoded LTPA token
+ * @returns Buffer containing encoded username
  */
-function getUserNameBuf(token: string): Buffer {
+export function getUserNameBuf(token: string): Buffer {
   const size = Buffer.byteLength(token, 'base64')
   const ltpaToken = Buffer.alloc(size, token, 'base64')
   return ltpaToken.subarray(20, ltpaToken.length - 20)
 }
 
-/***
- * Retrieve the username from the token as a string. No validation of the token
- * is performed
- * @returns {string} Username as a UTF-8 string
+/**
+ * Extract username string from token without validation
+ * @param token - Base64 encoded LTPA token
+ * @returns UTF-8 encoded username string
  */
-function getUserName(token: string): string {
+export function getUserName(token: string): string {
   const bufUsername = getUserNameBuf(token)
   let username: string[] = []
   for (let i = 0; i < bufUsername.length; i++) {
@@ -229,12 +217,14 @@ function getUserName(token: string): string {
   return username.join('')
 }
 
-/***
- * Refresh token if it's valid. Otherwise, throw an error.
- * @param {string} token The LtpaToken string in Base64 encoded format
- * @returns {string} The refreshed LtpaToken, or throw an exception
+/**
+ * Create new token from existing valid token
+ * @param token - Base64 encoded LTPA token
+ * @param domain - Domain for token validation/generation
+ * @returns New Base64 encoded LTPA token
+ * @throws Error if validation fails
  */
-function refresh(token: string, domain: string): string {
+export function refresh(token: string, domain: string): string {
   validate(token, domain)
   return generate(getUserNameBuf(token), domain)
 }
