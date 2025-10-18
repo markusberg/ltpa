@@ -1,7 +1,7 @@
-import * as ltpa from './index.js'
-
-import { describe, it, beforeEach } from 'vitest'
+import { describe, it, beforeEach } from 'node:test'
 import { strict as assert } from 'node:assert'
+
+import * as ltpa from './index.js'
 
 const secrets = {
   'example.com': 'AAECAwQFBgcICQoLDA0ODxAREhM=',
@@ -9,17 +9,23 @@ const secrets = {
 }
 ltpa.setSecrets(secrets)
 
+const FIVE_MINUTES = 5 * 60
+const ONE_HOUR = 60 * 60
+const TWO_HOURS = 2 * ONE_HOUR
+const THREE_HOURS = 3 * ONE_HOUR
+const NINETY_MINUTES = 90 * 60
+
 const knownTokens = [
   {
     timeCreation: 1234567890,
-    validity: 5400,
-    gracePeriod: 300,
+    validity: NINETY_MINUTES,
+    gracePeriod: FIVE_MINUTES,
     base64:
       'AAECAzQ5OTYwMWE2NDk5NjE5MTZNeSBUZXN0IFVzZXJjcHMKyXIrtD4SZcV7DKWd67EFng==',
   },
   {
     timeCreation: 1234567890,
-    validity: 5400,
+    validity: NINETY_MINUTES,
     gracePeriod: 0,
     base64:
       'AAECAzQ5OTYwMmQyNDk5NjE3ZWFNeSBUZXN0IFVzZXJ1HUi4fVHSeb8JgA2xsVK0kjromg==',
@@ -41,9 +47,9 @@ let now: number
 
 describe('Ltpa', function () {
   beforeEach(() => {
-    ltpa.setGracePeriod(300)
-    ltpa.setValidity(5400)
-    ltpa.setStrictExpirationValidation(false)
+    ltpa.setGracePeriod(FIVE_MINUTES)
+    ltpa.setValidity(NINETY_MINUTES)
+    ltpa.setStrictExpirationValidation(true)
 
     userName = 'My Test User'
     userNameBuf = ltpa.generateUserNameBuf(userName)
@@ -225,34 +231,73 @@ describe('Ltpa', function () {
     })
   })
 
-  describe('strict expiration validation', () => {
-    it('should validate a token using the token expiration date', () => {
-      // this token is invalid with non-strict validation
-      ltpa.setStrictExpirationValidation(true)
-      ltpa.setValidity(10800)
-      const twoHoursAgo = now - 2 * 60 * 60
-      const myToken = ltpa.generate(userNameBuf, 'example.com', twoHoursAgo)
-      ltpa.setValidity(5400)
-      assert.doesNotThrow(() => ltpa.validate(myToken, 'example.com'))
+  describe('expiration validation strictness', () => {
+    describe('default strict validation', () => {
+      it('should validate a token using the token expiration date', () => {
+        // generate a token with a start-of-validity of two hours ago, and a validity of 3 hours
+        ltpa.setValidity(THREE_HOURS)
+        const myToken = ltpa.generate(
+          userNameBuf,
+          'example.com',
+          now - TWO_HOURS,
+        )
+
+        // change the library default validity to one hour
+        ltpa.setValidity(ONE_HOUR)
+        assert.doesNotThrow(() => ltpa.validate(myToken, 'example.com'))
+      })
+
+      it('should fail to validate an expired token using the token expiration date', () => {
+        // this token is valid with non-strict validation
+        ltpa.setValidity(ONE_HOUR)
+        const expiredToken = ltpa.generate(
+          userNameBuf,
+          'example.com',
+          now - NINETY_MINUTES,
+        )
+        ltpa.setValidity(TWO_HOURS)
+
+        assert.throws(
+          () => ltpa.validate(expiredToken, 'example.com'),
+          Error,
+          'Ltpa Token has expired',
+        )
+      })
     })
 
-    it('should fail to validate an expired token using the token expiration date', () => {
-      // this token is valid with non-strict validation
-      ltpa.setStrictExpirationValidation(true)
-      ltpa.setValidity(3600)
-      const ninetyMinutesAgo = now - 90 * 60
-      const expiredToken = ltpa.generate(
-        userNameBuf,
-        'example.com',
-        ninetyMinutesAgo,
-      )
-      ltpa.setValidity(5400)
+    describe('non-strict validation', () => {
+      it("should validate an expired token that's still within the server's validity window", () => {
+        ltpa.setStrictExpirationValidation(false)
+        // generate a token with a start-of-validity of two hours ago, and a validity of 1 hour
+        ltpa.setValidity(ONE_HOUR)
+        const myToken = ltpa.generate(
+          userNameBuf,
+          'example.com',
+          now - TWO_HOURS,
+        )
 
-      assert.throws(
-        () => ltpa.validate(expiredToken, 'example.com'),
-        Error,
-        'Ltpa Token has expired',
-      )
+        // change the library default validity to one hour
+        ltpa.setValidity(THREE_HOURS)
+        assert.doesNotThrow(() => ltpa.validate(myToken, 'example.com'))
+      })
+
+      it("should fail to validate an otherwise valid token that's  outside the server's validity window", () => {
+        ltpa.setStrictExpirationValidation(false)
+        // 90 minute old token with 3 hours validity
+        ltpa.setValidity(THREE_HOURS)
+        const myToken = ltpa.generate(
+          userNameBuf,
+          'example.com',
+          now - NINETY_MINUTES,
+        )
+        ltpa.setValidity(ONE_HOUR)
+
+        assert.throws(
+          () => ltpa.validate(myToken, 'example.com'),
+          Error,
+          'Ltpa Token has expired',
+        )
+      })
     })
   })
 

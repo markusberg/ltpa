@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## [3.0.0-beta.1] - 2025-12-14
+
+- Strict expiration validation by default
+- Migrate from vitest to the native Node.Js test runner
+- Minimum supported version of Node.Js is 20
+- Improved api documentation
+
 ## [2.0.0] - 2024-02-18
 
 - Add support for codepage 852 enabling eastern european characters in usernames
