@@ -10,6 +10,9 @@ import iconv from 'iconv-lite'
 /** Mapping of domain names to their base64-encoded LTPA secrets */
 type Secrets = Record<string, string>
 
+/**
+ * LtpaToken generator and verifier
+ */
 let ltpaSecrets: Secrets
 let validity = 5400
 let gracePeriod = 300
