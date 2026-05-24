@@ -2,6 +2,10 @@
 
 All notable changes to this project will be documented in this file.
 
+## [3.0.0] - 2026-05-24
+
+- Improve jsdoc for release
+
 ## [3.0.0-beta.1] - 2025-12-14
 
 - Strict expiration validation by default
