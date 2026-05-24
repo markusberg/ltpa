@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## [3.1.0] - 2026-05-24
+
+- Add oxlint linter
+- Replace prettier with oxfmt
+- Upgrade to TypeScript 6
+- Upgrade GitHub actions
+
 ## [3.0.0] - 2026-05-24
 
 - Improve jsdoc for release

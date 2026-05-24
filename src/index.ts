@@ -7,8 +7,10 @@
 import { createHash } from 'node:crypto'
 import iconv from 'iconv-lite'
 
-/** Mapping of domain names to their base64-encoded LTPA secrets */
-type Secrets = Record<string, string>
+/**
+ * Mapping of domains to their corresponding LTPA secrets (base64-encoded)
+ */
+export type Secrets = Record<string, string>
 
 /**
  * LtpaToken generator and verifier
@@ -57,7 +59,7 @@ export function setStrictExpirationValidation(strict: boolean): void {
  * Set the LTPA secrets for token generation/validation
  * @param secrets - Domain to secret (base64) mapping
  */
-export function setSecrets(secrets: Secrets) {
+export function setSecrets(secrets: Secrets): void {
   ltpaSecrets = secrets
 }
 

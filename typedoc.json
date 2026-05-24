@@ -1,5 +1,4 @@
 {
-  "plugin": ["typedoc-plugin-markdown"],
   "out": "./docs",
   "includeVersion": true,
   "readme": "none"

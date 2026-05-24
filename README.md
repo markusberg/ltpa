@@ -1,7 +1,7 @@
 # ltpa
 
 [![node.js build](https://github.com/markusberg/ltpa/actions/workflows/badges.yaml/badge.svg)](https://github.com/markusberg/ltpa/actions/workflows/badges.yaml)
-[![coverage](https://markusberg.github.io/ltpa/badges/coverage-3.0.0.svg)](https://github.com/markusberg/ltpa/actions)
+[![coverage](https://markusberg.github.io/ltpa/badges/coverage-3.1.0.svg)](https://github.com/markusberg/ltpa/actions)
 [![version](https://img.shields.io/npm/v/ltpa.svg)](https://npmjs.com/packages/ltpa)
 [![license](https://img.shields.io/github/license/markusberg/ltpa.svg)](./LICENSE)
 [![downloads](https://img.shields.io/npm/dt/ltpa.svg)](http://npm-stat.com/charts.html?package=ltpa)

@@ -1,12 +1,13 @@
 .husky/
 .github/
 
-.prettierrc
 .node-version
+.oxfmtrc.json
 
 coverage/
 src/
 docs/
+.vscode/
 
 index.ts
 tsconfig.json
