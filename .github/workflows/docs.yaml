@@ -1,0 +1,71 @@
+name: Publish Documentation to GitHub Pages
+
+on:
+  push:
+    branches: [fixme-release/**]
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    environment:
+      name: github-pages
+
+    strategy:
+      matrix:
+        node-version: [24.x]
+
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v6
+        with:
+          node-version: ${{ matrix.node-version }}
+
+      - name: Get version
+        id: get-version
+        shell: bash
+        run: |
+          VERSION=$(node -p 't=require(`./package.json`).version')
+          echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build documentation
+        run: npm run docs
+
+      - name: Prepare docs for deployment
+        shell: bash
+        run: |
+          # Create versioned docs directory
+          mkdir -p deploy/${{ steps.get-version.outputs.VERSION }}
+          # Copy generated docs to versioned folder
+          cp -r docs/* deploy/${{ steps.get-version.outputs.VERSION }}/
+
+          # Generate index.html with version links
+          cat > deploy/index.html << 'EOF'
+
+          EOF
+
+      - name: Checkout gh-pages
+        uses: actions/checkout@v6
+        with:
+          ref: gh-pages
+
+      - name: Deploy Badge to gh-pages
+        uses: stefanzweifel/git-auto-commit-action@v7
+        with:
+          commit_message: 'Update documentation for version ${{ steps.get-version.outputs.VERSION }}'
+          branch: gh-pages
+          skip_fetch: true
+          skip_checkout: true
+
+      # Without this, will get Error:
+      # Can't find 'action.yml', 'action.yaml' or 'Dockerfile' under '/home/runner/work/coverage-badge-action/coverage-badge-action/action.yml'.
+      # Did you forget to run actions/checkout before running your local action?
+      - name: Checkout Back
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ github.ref }}
