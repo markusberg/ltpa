@@ -1,6 +1,6 @@
 {
   "name": "ltpa",
-  "version": "3.1.0",
+  "version": "3.2.0",
   "description": "Ltpa token generation and validation",
   "keywords": [
     "authentication",
@@ -42,9 +42,7 @@
     "fmt:check": "oxfmt --check",
     "prep": "npm install && npm run githooks"
   },
-  "dependencies": {
-    "iconv-lite": "~0.7.0"
-  },
+  "dependencies": {},
   "devDependencies": {
     "@markusberg/lcov-parse": "^3.0.0",
     "@types/node": "^24.12.4",

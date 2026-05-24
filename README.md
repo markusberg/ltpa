@@ -1,7 +1,7 @@
 # ltpa
 
 [![node.js build](https://github.com/markusberg/ltpa/actions/workflows/badges.yaml/badge.svg)](https://github.com/markusberg/ltpa/actions/workflows/badges.yaml)
-[![coverage](https://markusberg.github.io/ltpa/badges/coverage-3.1.0.svg)](https://github.com/markusberg/ltpa/actions)
+[![coverage](https://markusberg.github.io/ltpa/badges/coverage-3.2.0.svg)](https://github.com/markusberg/ltpa/actions)
 [![version](https://img.shields.io/npm/v/ltpa.svg)](https://npmjs.com/packages/ltpa)
 [![license](https://img.shields.io/github/license/markusberg/ltpa.svg)](./LICENSE)
 [![downloads](https://img.shields.io/npm/dt/ltpa.svg)](http://npm-stat.com/charts.html?package=ltpa)
@@ -141,7 +141,13 @@ $ npm run test:watch
 
 ### Character sets
 
-The module only works with usernames containing characters in the `ibm850`, and `ibm852` codepages (this covers most of Europe). The username in the token is encoded in an old IBM/Lotus format called [`LMBCS` (Lotus Multi-Byte Character Set)](https://en.wikipedia.org/wiki/Lotus_Multi-Byte_Character_Set) for which I have found no JavaScript implementation.
+The character encoding in the ltpa tokens is an old IBM/Lotus format called [`LMBCS` (Lotus Multi-Byte Character Set)](https://en.wikipedia.org/wiki/Lotus_Multi-Byte_Character_Set) for which I have implemented partial encoder and decoder functions. As of version 3.2.0 (2026-05-25), this packages supports the following character groups:
+
+- The default character set (basically lower ascii)
+- LMBCS-1 -- mostly Latin-1 (IBM850) which covers western Europe
+- LMBCS-6 -- mostly Latin-2 (IBM852) covering most of central and eastern Europe
+
+This covers most of Europe, the Americas, and more, so if the usernames in your Domino domain only contain characters in these groups you shouldn't have any problems.
 
 ### LTPA1 only
 
