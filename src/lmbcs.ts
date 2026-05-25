@@ -26,16 +26,6 @@ const ASCII = Array.from({ length: 0x7f - 0x20 + 1 }, (_, i) =>
 ).join('')
 
 /**
- * LMBCS codepage definition
- */
-type Codepage = {
-  comment: string
-  leadByte: Buffer | null
-  bytes: number
-  chars: string
-}
-
-/**
  * Supported LMBCS codepages
  *
  * - Index 0: Default codepage (ASCII 0x20-0x7F, no lead byte)
@@ -44,42 +34,49 @@ type Codepage = {
  *
  * Note: Undefined/unsupported characters are represented as space (0x20)
  */
-const codepages: Codepage[] = [
-  {
-    comment:
-      "Default codepage, base ascii from 0x20 to 0x7f. Doesn't have a leading byte",
-    leadByte: null,
-    bytes: 1,
-    chars: ASCII,
-  },
-  {
-    comment: 'lmbcs1 - ibm850 but with exceptions in the 0x01 to 0x7F range',
-    leadByte: Buffer.from([0x01]),
-    bytes: 2,
-    chars:
-      ' ☺☻♥♦♣♠•◘○◙♂♀♪♫☼' +
-      '►◄↕‼¶§▬↨↑↓→←∟↔▲▼' +
-      "¨~˚^`´“'…-—‘’ ‹›" +
-      '¨~˚^`´„‚”‗ \u00A0    ' +
-      'ŒœŸ˙˚ ╞╟▌▐◊⌘  Ω ' +
-      '╨╤╥╙╘╒╓╫╪╡╢╖╕╜╛╧' +
-      'ĳĲﬁﬂŉ\u0140\u013F¯˘˝˛ˇ~^  ' +
-      '†‡ĦħŦŧ™ℓŊŋĸ \uF8FB⌐₤₧' +
-      'ÇüéâäàåçêëèïîìÄÅÉæÆôöòûùÿÖÜø£Ø×ƒáíóúñÑªº¿®¬½¼¡«»░▒▓│┤ÁÂÀ©╣║╗╝¢¥┐└┴┬├─┼ãÃ╚╔╩╦╠═╬¤ðÐÊËÈıÍÎÏ┘┌█▄¦Ì▀ÓßÔÒõÕµþÞÚÛÙýÝ¯´­±‗¾¶§÷¸°¨·¹³²■ ',
-  },
 
-  {
-    comment: 'lmbcs6 - ibm852 but with exceptions in the 0x01 to 0x7F range',
-    leadByte: Buffer.from([0x06]),
-    bytes: 2,
-    chars:
-      ' āĈĉĊċĒēĖėĜĝĠġĢģ' +
-      'ĤĥĨĩĪīĮįĴĵĶķĻļŅņ' +
-      'ŌōŖŗŜŝŨũŪūŬŭŲųĀ ' +
-      ' '.repeat(80) +
-      'ÇüéâäůćçłëŐőîŹÄĆÉĹĺôöĽľŚśÖÜŤťŁ×čáíóúĄąŽžĘę¬źČş«»░▒▓│┤ÁÂĚŞ╣║╗╝Żż┐└┴┬├─┼Ăă╚╔╩╦╠═╬¤đĐĎËďŇÍÎě┘┌█▄ŢŮ▀ÓßÔŃńňŠšŔÚŕŰýÝţ´­˝˛ˇ˘§÷¸°¨˙űŘř■ ',
-  },
-]
+/**
+ * lmbcs1 - ibm850 but with exceptions in the 0x01 to 0x7F range
+ *
+ * lead byte: 0x01
+ * bytes: 2
+ */
+const lmbcs1 =
+  ' ☺☻♥♦♣♠•◘○◙♂♀♪♫☼' +
+  '►◄↕‼¶§▬↨↑↓→←∟↔▲▼' +
+  "¨~˚^`´“'…-—‘’ ‹›" +
+  '¨~˚^`´„‚”‗ \u00A0    ' +
+  'ŒœŸ˙˚ ╞╟▌▐◊⌘  Ω ' +
+  '╨╤╥╙╘╒╓╫╪╡╢╖╕╜╛╧' +
+  'ĳĲﬁﬂŉ\u0140\u013F¯˘˝˛ˇ~^  ' +
+  '†‡ĦħŦŧ™ℓŊŋĸ \uF8FB⌐₤₧' +
+  'ÇüéâäàåçêëèïîìÄÅÉæÆôöòûùÿÖÜø£Ø×ƒáíóúñÑªº¿®¬½¼¡«»░▒▓│┤ÁÂÀ©╣║╗╝¢¥┐└┴┬├─┼ãÃ╚╔╩╦╠═╬¤ðÐÊËÈıÍÎÏ┘┌█▄¦Ì▀ÓßÔÒõÕµþÞÚÛÙýÝ¯´­±‗¾¶§÷¸°¨·¹³²■ '
+
+/**
+ * lmbcs6 - ibm852 but with exceptions in the 0x01 to 0x7F range
+ *
+ * lead byte: 0x06
+ * bytes: 2
+ */
+const lmbcs6 =
+  ' āĈĉĊċĒēĖėĜĝĠġĢģ' +
+  'ĤĥĨĩĪīĮįĴĵĶķĻļŅņ' +
+  'ŌōŖŗŜŝŨũŪūŬŭŲųĀ ' +
+  ' '.repeat(80) +
+  'ÇüéâäůćçłëŐőîŹÄĆÉĹĺôöĽľŚśÖÜŤťŁ×čáíóúĄąŽžĘę¬źČş«»░▒▓│┤ÁÂĚŞ╣║╗╝Żż┐└┴┬├─┼Ăă╚╔╩╦╠═╬¤đĐĎËďŇÍÎě┘┌█▄ŢŮ▀ÓßÔŃńňŠšŔÚŕŰýÝţ´­˝˛ˇ˘§÷¸°¨˙űŘř■ '
+
+const lookup = new Map<string, number[]>()
+for (const char of lmbcs6) {
+  const idx = lmbcs6.indexOf(char)
+  lookup.set(char, [0x06, idx])
+}
+for (const char of lmbcs1) {
+  const idx = lmbcs1.indexOf(char)
+  lookup.set(char, [0x01, idx])
+}
+for (const char of ASCII) {
+  lookup.set(char, [char.charCodeAt(0)])
+}
 
 /**
  * Encode a single character to LMBCS format
@@ -93,24 +90,17 @@ const codepages: Codepage[] = [
  * @throws If the character is not found in any supported LMBCS codepage
  *
  * @example
- * encode('A') // Returns Buffer [0x41]
- * encode('é') // Returns Buffer [0x01, 0x82] (LMBCS-1 codepage)
+ * encode('A') // Returns [0x41]
+ * encode('é') // Returns [0x01, 0x82] (LMBCS-1 codepage)
  *
  * @internal
  */
-function encode(char: string): Buffer {
-  const group = codepages.find((cp) => cp.chars.includes(char))
-  if (!group) {
-    throw new Error(`Character ${char} not found in any codepage`)
+function encode(char: string): number[] {
+  const encoded = lookup.get(char)
+  if (encoded) {
+    return encoded
   }
-
-  if (group.leadByte === null) {
-    return Buffer.from(char, 'ascii')
-  }
-
-  const idxChar = group.chars.indexOf(char)
-  const charBuf = Buffer.from([idxChar])
-  return Buffer.concat([group.leadByte, charBuf])
+  throw new Error(`Character ${char} not found in any codepage`)
 }
 
 /**
@@ -132,9 +122,7 @@ function encode(char: string): Buffer {
  * // Returns Buffer with mix of LMBCS-1 encoded characters
  */
 export function bufFromString(input: string): Buffer {
-  return input
-    .split('')
-    .reduce((acc, char) => Buffer.concat([acc, encode(char)]), Buffer.from(''))
+  return Buffer.from(input.split('').flatMap((char) => encode(char)))
 }
 
 /**
@@ -159,20 +147,34 @@ export function bufFromString(input: string): Buffer {
 export function stringFromBuf(bufLMBCS: Buffer): string {
   let username: string[] = []
   for (let i = 0; i < bufLMBCS.length; i++) {
-    const char = bufLMBCS.subarray(i, i + 1)
+    const char = bufLMBCS[i]
 
-    const group = codepages.find(
-      (cp) => cp.leadByte !== null && cp.leadByte.equals(char),
-    )
-    if (!group) {
-      // default codepage, single byte ascii
-      username.push(char.toString('ascii'))
+    if (char >= 0x20) {
+      // single byte ascii character
+      username.push(String.fromCharCode(char))
       continue
     }
-    const charBuf = bufLMBCS.subarray(i + 1, i + group.bytes)
-    const charStr = group.chars[charBuf[0]]
+
+    let charBuf: Buffer
+    let length: number
+    let charStr: string
+    switch (char) {
+      case 0x01:
+        length = 2
+        charBuf = bufLMBCS.subarray(i + 1, i + length)
+        charStr = lmbcs1[charBuf[0]]
+        break
+      case 0x06:
+        length = 2
+        charBuf = bufLMBCS.subarray(i + 1, i + length)
+        charStr = lmbcs6[charBuf[0]]
+        break
+      default:
+        throw new Error(`Invalid lead byte ${char} at position ${i}`)
+    }
+
     username.push(charStr)
-    i += group.bytes - 1
+    i += length - 1
   }
 
   return username.join('')
