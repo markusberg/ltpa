@@ -2,6 +2,10 @@
 
 All notable changes to this project will be documented in this file.
 
+## [3.2.0] - 2026-05-25
+
+- Improve LMBCS encoding/decoding and move to separate module
+
 ## [3.1.0] - 2026-05-24
 
 - Add oxlint linter
