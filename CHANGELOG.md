@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## [3.3.0] - 2026-05-27
+
+- Improve correctness in LMBCS encoding/decoding
+- Add performance testing in LMBCS encoding/decoding
+- Make LMBCS encoding/decoding more robust with LMBCS-20 (UTF-16) fallback
+- Publish documentation to github pages
+
 ## [3.2.0] - 2026-05-25
 
 - Improve LMBCS encoding/decoding and move to separate module

@@ -2,26 +2,22 @@ name: Publish Documentation to GitHub Pages
 
 on:
   push:
-    branches: [fixme-release/**]
+    branches: [release/**]
 
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
 
-    environment:
-      name: github-pages
-
-    strategy:
-      matrix:
-        node-version: [24.x]
+    permissions:
+      contents: write
 
     steps:
       - uses: actions/checkout@v6
 
-      - name: Use Node.js ${{ matrix.node-version }}
+      - name: Use Node.js
         uses: actions/setup-node@v6
         with:
-          node-version: ${{ matrix.node-version }}
+          node-version: 24.x
 
       - name: Get version
         id: get-version
@@ -43,18 +39,28 @@ jobs:
           mkdir -p deploy/${{ steps.get-version.outputs.VERSION }}
           # Copy generated docs to versioned folder
           cp -r docs/* deploy/${{ steps.get-version.outputs.VERSION }}/
-
-          # Generate index.html with version links
-          cat > deploy/index.html << 'EOF'
-
-          EOF
+          # Stash deploy dir before gh-pages checkout wipes the workspace
+          cp -r deploy /tmp/deploy
 
       - name: Checkout gh-pages
         uses: actions/checkout@v6
         with:
           ref: gh-pages
 
-      - name: Deploy Badge to gh-pages
+      - name: Copy docs into gh-pages workspace
+        shell: bash
+        run: cp -r /tmp/deploy/* ./docs/
+
+      - name: Generate list of versions
+        shell: bash
+        run: |
+          rm -f docs/versions.txt
+          for dir in docs/*/; do
+            version=$(basename "$dir")
+            echo "$version" >> docs/versions.txt
+          done
+
+      - name: Deploy docs to gh-pages
         uses: stefanzweifel/git-auto-commit-action@v7
         with:
           commit_message: 'Update documentation for version ${{ steps.get-version.outputs.VERSION }}'

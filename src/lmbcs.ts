@@ -28,9 +28,10 @@ const ASCII = Array.from({ length: 0x7f - 0x20 + 1 }, (_, i) =>
 /**
  * Supported LMBCS codepages
  *
- * - Index 0: Default codepage (ASCII 0x20-0x7F, no lead byte)
- * - Index 1: LMBCS-1 (IBM850-based, lead byte 0x01)
- * - Index 2: LMBCS-6 (IBM852-based, lead byte 0x06)
+ * - Default codepage (ASCII 0x20-0x7F, no lead byte)
+ * - LMBCS-1 (IBM850-based, lead byte 0x01)
+ * - LMBCS-6 (IBM852-based, lead byte 0x06)
+ * - LMBCS-20 (UTF-16BE with NUL-byte avoidance, lead byte 0x14)
  *
  * Note: Undefined/unsupported characters are represented as space (0x20)
  */
